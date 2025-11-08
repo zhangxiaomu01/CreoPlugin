@@ -1,0 +1,6 @@
+NAME       NDSCreoModeler
+EXEC_FILE  E:\\Newdim\\Project\\CreoPlugin\\output\\CreoPlugin.dll
+TEXT_DIR   E:\\Newdim\\Project\\CreoPlugin\\output\\text
+STARTUP    dll
+REVISION   18
+END
