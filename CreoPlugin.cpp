@@ -185,6 +185,8 @@ Pro/Toolkit includes
 #include <ProXsec.h>
 #include <ProTKRunTime.h>
 
+#include "thirdParty/logger/EasyLog.hpp"
+
 /*--------------------------------------------------------------------*\
 Application includes
 \*--------------------------------------------------------------------*/
@@ -228,6 +230,14 @@ extern "C" int user_initialize(
     uiCmdCmdId	cmd_id;
 
     ProUITranslationFilesEnable();
+
+    initLogger("E:/Newdim/Project/Logs/mylogfile.log", ldebug);
+
+    L_(linfo) << "info";
+
+    L_(lwarning) << "Ops, variable x should be " << 5 << "; is " << 6;
+
+    endLogger();
 
 
     /*---------------------------------------------------------------------*\
