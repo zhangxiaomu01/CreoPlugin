@@ -1,0 +1,28 @@
+﻿USER %0s
+%0s
+%0s
+
+-Install Test Label
+-Install Test
+-설치 테스트
+
+-Install Test Help
+-Creo Parametric TOOLKIT Installation Test
+-Creo Parametric TOOLKIT 설치 테스트
+
+Creo Parametric TOOLKIT Compilers Label
+-Creo Parametric TOOLKIT Compilers
+-Creo Parametric TOOLKIT 컴파일러
+
+Creo Parametric TOOLKIT Compilers Help
+Open the platform support page
+플랫폼 지원 페이지 열기
+
+USER Succeeded
+The Creo Parametric TOOLKIT Installation Test succeeded
+Creo Parametric TOOLKIT 설치 테스트 성공
+
+USER Failed
+The Creo Parametric TOOLKIT Installation Test failed
+Creo Parametric TOOLKIT 설치 테스트 실패
+

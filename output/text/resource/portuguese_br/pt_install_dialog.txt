@@ -1,0 +1,12 @@
+﻿# {100} (100) [0] pt_install_dialog.Label
+Install Test Results
+Resultados do teste de instalação
+
+# [1] CloseBtn.Label
+OK
+OK
+
+# [2] Message.Label
+Pro/TOOLKIT Installation Test Status
+Status do teste de instalação do Pro/TOOLKIT
+

@@ -1,0 +1,28 @@
+﻿USER %0s
+%0s
+%0s
+
+-Install Test Label
+-Install Test
+-Test di installazione
+
+-Install Test Help
+-Creo Parametric TOOLKIT Installation Test
+-Test di installazione Creo Parametric TOOLKIT
+
+Creo Parametric TOOLKIT Compilers Label
+-Creo Parametric TOOLKIT Compilers
+-Compilatori Creo Parametric TOOLKIT
+
+Creo Parametric TOOLKIT Compilers Help
+Open the platform support page
+Apre la pagina di supporto della piattaforma
+
+USER Succeeded
+The Creo Parametric TOOLKIT Installation Test succeeded
+Test di installazione di Creo Parametric TOOLKIT superato
+
+USER Failed
+The Creo Parametric TOOLKIT Installation Test failed
+Test di installazione di Creo Parametric TOOLKIT fallito
+
