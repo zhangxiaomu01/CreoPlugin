@@ -421,6 +421,9 @@ ProError DispObjectRenderer::RenderDispObjectMesh()
 
 	disobj_winId = 0;
 	status = ProMdlWindowGet(model, &disobj_winId);
+	if (status == PRO_TK_NO_ERROR) {
+		m_dispObjectWindowId = disobj_winId;
+	}
 
 	if (result == PRO_UI_MESSAGE_YES)  // Deletes existing display object
 	{
@@ -513,9 +516,7 @@ ProError DispObjectRenderer::RenderDispObjectMesh()
 
 	// Call repaint 
 	status = ProWindowRepaint(disobj_winId);
-	if (status == PRO_TK_NO_ERROR) {
-		m_dispObjectWindowId = disobj_winId;
-	}
+	
 
 	for (i = 0; i < facetCount; i++)
 	{
