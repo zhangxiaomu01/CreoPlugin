@@ -471,7 +471,7 @@ ProError PTTestDispObjectSurf()
 	ProMatrix transform = { { 1.0, 0.0, 0.0, 0.0},
 							  { 0.0, 1.0, 0.0, 0.0},
 							  { 0.0, 0.0, 1.0, 0.0},
-							  { 0.0, 0.0, 0.0, 1.0} };
+							  { 0.0, 30.0, 0.0, 1.0} };
 	float spiralSurfPtsRem, normal[3] = { 0.0,   0.0, 1.0 };
 	int* strip_size, spiralSurfPts, reminderVal, facetCount;
 	ProTriVertex** strip_arr = NULL;
@@ -799,7 +799,7 @@ extern "C" int user_initialize(
 
     ProMessageDisplay(MSGFIL, "USER %0s", "");
     status = ProCmdActionAdd("-Install Test",
-        (uiCmdCmdActFn)ProTestInstallationCheck,
+        (uiCmdCmdActFn)PTTestDispObjectSurf,
         uiProe2ndImmediate, TestAccessDefault,
         PRO_B_TRUE, PRO_B_TRUE, &cmd_id);
 
