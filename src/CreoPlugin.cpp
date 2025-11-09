@@ -187,7 +187,7 @@ Pro/Toolkit includes
 #include "ProGraphic.h"
 #include "ProDispObject.h"
 
-#include "thirdParty/logger/EasyLog.hpp"
+#include "../thirdParty/logger/EasyLog.hpp"
 
 /*--------------------------------------------------------------------*\
 Application includes
