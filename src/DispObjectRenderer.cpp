@@ -304,120 +304,49 @@ ProError DispObjectRenderer::RenderDispObjectMesh(
 {
 	ProError status = PRO_TK_NO_ERROR;
 	ProMdl model = NULL;
-	ProMatrix transform = { { 1.0, 0.0, 0.0, 0.0},
-							  { 0.0, 1.0, 0.0, 0.0},
-							  { 0.0, 0.0, 1.0, 0.0},
-							  { 0.0, 30.0, 0.0, 1.0} };
+	auto matrix = meshTransform.matrix;
+	ProMatrix transform = { { matrix[0], matrix[1], matrix[2], matrix[3] },
+							  { matrix[4], matrix[5], matrix[6], matrix[7] },
+							  { matrix[8], matrix[9], matrix[10], matrix[11] },
+							  { matrix[12], matrix[13], matrix[14], matrix[15] } };
 	float spiralSurfPtsRem, normal[3] = { 0.0,   0.0, 1.0 };
-	int* strip_size, spiralSurfPts, reminderVal, facetCount;
+	int* strip_size, facetCount;
 	ProTriVertex** strip_arr = NULL;
 	ProSurfaceAppearanceProps surf_appear;
-	ProMatrix CompMatrix;
-	ProSelection* p_sel;
-	int i = -1, n_sel = -1, j;
-	ProMdl owner;
-	ProModelitem modelitem;
-	ProCurve curve;
-	Pro3dPnt* p_points;
-	ProSurface pSurface;
-	ProTessellation surfTessellation;
-	Pro3dPnt* surfVertices;
-	ProVector* surfNormals;
-	ProSurfaceTessellationInput inputData;
 	ProTriVertex tempTriVertex;
-	ProTriangle* pFacets;
-	ProMdlType topMdlType;
-	ProAsmcomppath pCompPath;
-	int* cIdTablel;
-	ProBoolean isCompPath = PRO_B_FALSE;
-	ProModelitem sAsmComp;
-	ProCsys csys;
-	ProGeomitemdata* pCsysDataPtr;
+
 	int disobj_winId;
-	ProUIMessageButton* buttons2;
 	int feat_id = 118;
-	ProUIMessageButton result = PRO_UI_MESSAGE_NO;
 
-	if (surfDisp_obj != NULL) // If Display object exist then ask user to keep it or replace witn new one
-	{
-		ProArrayAlloc(2, sizeof(ProUIMessageButton), 1, (ProArray*)&buttons2);
-		buttons2[0] = PRO_UI_MESSAGE_YES;
-		buttons2[1] = PRO_UI_MESSAGE_NO;
-
-		status = ProUIMessageDialogDisplay(PROUIMESSAGE_QUESTION, L"Delete existing surface display object",
-			L"Code creates only one surface display object at a time. Do you want to delete existing surface display object?",
-			buttons2, buttons2[1], &result);
-
-		status = ProArrayFree((ProArray*)&buttons2);
-
-		if (result == PRO_UI_MESSAGE_NO)
-			return (PRO_TK_NO_ERROR);
-	}
-
-	//Select surface to created display object
-	status = ProSelect((char*)"surface", 1, NULL, NULL, NULL, NULL, &p_sel,
-		&n_sel);
-
-	if (status != PRO_TK_NO_ERROR || n_sel < 1)
-		return status;
-
-	status = ProSelectionModelitemGet(p_sel[0], &modelitem);
-
-	status = ProModelitemMdlGet(&modelitem, &owner);
-
-	if (modelitem.type == PRO_SURFACE)
-	{
-		status = ProSurfaceInit((ProSolid)owner, modelitem.id, &pSurface);
-
-		status = ProSurfacetessellationinputAlloc(&inputData);
-
-		status = ProSurfacetessellationinputChordheightSet(inputData, PRO_SRFTESS_CHORD_HT_DEFAULT);
-
-		status = ProSurfacetessellationinputAnglecontrolSet(inputData, 1);
-
-		status = ProSurfacetessellationinputStepsizeSet(inputData, 1);
-
-		status = ProSurfacetessellationinputUvprojectionSet(inputData, PRO_SRFTESS_DEFAULT_PROJECTION, NULL);
-
-		// Getting surface tessellation data
-		status = ProSurfaceTessellationGet(pSurface, inputData, &surfTessellation);
-
-		status = ProTessellationVerticesGet(surfTessellation, &surfVertices);
-
-		status = ProTessellationNormalsGet(surfTessellation, &surfNormals);
-
-		// Getting facets from surface tessellation
-		status = ProTessellationFacetsGet(surfTessellation, &pFacets);
-
-		status = ProArraySizeGet(pFacets, &facetCount);
-	}
-	else
-		return PRO_TK_BAD_INPUTS;
+	facetCount = indices.size() / 3;
 
 	status = ProArrayAlloc(facetCount, sizeof(ProTriVertex*), 1, (ProArray*)&strip_arr);
 
 	// Each facet is added as a seperate strip so, number of strip arrays (ie strips)
 	// is equal to number of facets
-	for (i = 0; i < facetCount; i++)
+	for (int i = 0; i < facetCount; i++)
 	{
 		status = ProArrayAlloc(0, sizeof(ProTriVertex), 1, (ProArray*)&(strip_arr[i]));
 	}
 
 	status = ProArrayAlloc(facetCount, sizeof(int), 1, (ProArray*)&strip_size);
 
-	for (i = 0; i < facetCount; i++)
+	for (int i = 0; i < facetCount; i++)
 	{
 		strip_size[i] = 3;
 
-		for (j = 0; j < 3; j++)
+		for (int j = 0; j < 3; j++)
 		{
-			tempTriVertex.pnt[0] = surfVertices[pFacets[i][j]][0];
-			tempTriVertex.pnt[1] = surfVertices[pFacets[i][j]][1];
-			tempTriVertex.pnt[2] = surfVertices[pFacets[i][j]][2];
+			NDSUInt32 currentIndex = indices[i * 3 + j];
+			NDSUInt32 vertexIndexStart = currentIndex * 3;
 
-			tempTriVertex.norm[0] = surfNormals[pFacets[i][j]][0];
-			tempTriVertex.norm[1] = surfNormals[pFacets[i][j]][1];
-			tempTriVertex.norm[2] = surfNormals[pFacets[i][j]][2];
+			tempTriVertex.pnt[0] = vertices[vertexIndexStart];
+			tempTriVertex.pnt[1] = vertices[vertexIndexStart + 1];
+			tempTriVertex.pnt[2] = vertices[vertexIndexStart + 2];
+
+			tempTriVertex.norm[0] = normals[vertexIndexStart];
+			tempTriVertex.norm[1] = normals[vertexIndexStart + 1];
+			tempTriVertex.norm[2] = normals[vertexIndexStart + 2];
 
 			status = ProArrayObjectAdd((ProArray*)&(strip_arr[i]), PRO_VALUE_UNUSED, 1, &tempTriVertex);
 		}
@@ -433,7 +362,7 @@ ProError DispObjectRenderer::RenderDispObjectMesh(
 		m_dispObjectWindowId = disobj_winId;
 	}
 
-	if (result == PRO_UI_MESSAGE_YES)  // Deletes existing display object
+	if (surfDisp_obj != NULL)  // Deletes existing display object
 	{
 		status = ProDispObjectDetach(disobj_winId, dispobj_keylist2);
 
@@ -464,56 +393,14 @@ ProError DispObjectRenderer::RenderDispObjectMesh(
 
 	if (status == PRO_TK_NO_ERROR)
 	{
-		status = ProMdlTypeGet(model, &topMdlType);
-
-		if (topMdlType == PRO_MDL_ASSEMBLY)
-		{
-			// Getting component path
-			status = ProSelectionAsmcomppathGet(p_sel[0], &pCompPath);
-
-			if (pCompPath.table_num > 0)
-			{
-				int arrayCount;
-
-				sAsmComp.type = PRO_FEATURE;
-				sAsmComp.id = pCompPath.comp_id_table[pCompPath.table_num - 1];
-				sAsmComp.owner = owner;
-
-				status = ProArrayAlloc(0, sizeof(int), 1, (ProArray*)&cIdTablel);
-
-				// Getting component ID table
-				for (arrayCount = 0; arrayCount < pCompPath.table_num; arrayCount++)
-				{
-					status = ProArrayObjectAdd((ProArray*)&cIdTablel,
-						PRO_VALUE_UNUSED, 1, &pCompPath.comp_id_table[arrayCount]);
-				}
-				isCompPath = PRO_B_TRUE;
-			}
-			else
-				isCompPath = PRO_B_FALSE;
-		}
-
 		// Attaching display object
-		status = ProDispObjectAttach((int)disobj_winId, surfDisp_obj, (isCompPath == PRO_B_TRUE ? cIdTablel : NULL), feat_id, transform);
+		status = ProDispObjectAttach((int)disobj_winId, surfDisp_obj, NULL, feat_id, transform);
 
 		surf_appear.color_rgb[0] = 0.0;
 		surf_appear.color_rgb[1] = 0.0;
 		surf_appear.color_rgb[2] = 1.0;
 
 		status = ProArrayAlloc(0, sizeof(int), 1, (ProArray*)&dispobj_keylist2);
-
-		if (isCompPath == PRO_B_TRUE)
-		{
-			int arrayCount = -1, ii = -1;
-
-			status = ProArraySizeGet(cIdTablel, &arrayCount);
-
-			for (ii = 0; ii < arrayCount; ii++)
-			{
-				status = ProArrayObjectAdd((ProArray*)&dispobj_keylist2,
-					PRO_VALUE_UNUSED, 1, &cIdTablel[ii]);
-			}
-		}
 
 		status = ProArrayObjectAdd((ProArray*)&dispobj_keylist2,
 			PRO_VALUE_UNUSED, 1, &feat_id);
@@ -526,9 +413,9 @@ ProError DispObjectRenderer::RenderDispObjectMesh(
 	status = ProWindowRepaint(disobj_winId);
 	
 
-	for (i = 0; i < facetCount; i++)
+	for (int i = 0; i < facetCount; i++)
 	{
-		for (j = 0; j < 3; j++)
+		for (int j = 0; j < 3; j++)
 		{
 			status = ProArrayFree((ProArray*)&(strip_arr[i]));
 		}
@@ -538,19 +425,7 @@ ProError DispObjectRenderer::RenderDispObjectMesh(
 
 	status = ProArrayFree((ProArray*)&strip_size);
 
-	if (modelitem.type == PRO_SURFACE)
-	{
-		status = ProArrayFree((ProArray*)&surfVertices);
-
-		status = ProArrayFree((ProArray*)&surfNormals);
-	}
-
-	if (isCompPath == PRO_B_TRUE)
-	{
-		status = ProArrayFree((ProArray*)&cIdTablel);
-	}
-
-	return PRO_TK_NO_ERROR;
+	return status;
 }
 
 ProError DispObjectRenderer::RenderTestBox()
@@ -605,6 +480,7 @@ ProError DispObjectRenderer::RenderTestBox()
 	};
 
 	NDSMatrix meshTransform;
+	meshTransform.matrix[13] = -30.0;
 	ModelTransfer::NDSMaterial ndsMaterial;
 	ProError status = RenderDispObjectMesh(vertices, normals, indices, &ndsMaterial, meshTransform);
 

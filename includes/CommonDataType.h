@@ -8,6 +8,10 @@
 #define NDSDouble double
 #endif
 
+#ifndef NDSInt32
+#define NDSInt32 int
+#endif
+
 #ifndef NDSUInt32
 #define NDSUInt32 unsigned int
 #endif
