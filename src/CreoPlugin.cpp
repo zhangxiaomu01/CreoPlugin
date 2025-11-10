@@ -218,7 +218,7 @@ ProError PTTestDispObjectCurve()
 ProError PTTestDispObjectSurf()
 {
     DispObjectRenderer dispObjectRenderer;
-    ProError status = dispObjectRenderer.RenderDispObjectMesh();
+    ProError status = dispObjectRenderer.RenderTestBox();
 
 	return status;
 }

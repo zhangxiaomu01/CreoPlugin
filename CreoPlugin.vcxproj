@@ -151,6 +151,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
+    <ClInclude Include="includes\CommonDataType.h" />
     <ClInclude Include="includes\DispObjectRenderer.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="thirdParty\logger\EasyLog.hpp" />

@@ -30,6 +30,9 @@
     <ClInclude Include="includes\DispObjectRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="includes\CommonDataType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

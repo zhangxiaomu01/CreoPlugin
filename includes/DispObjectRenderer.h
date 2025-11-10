@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+
+#include "CommonDataType.h"
 #include "ProToolkit.h"
 #include "ProDispObject.h"
 
@@ -9,9 +12,23 @@ public:
 
 	~DispObjectRenderer();
 
-	ProError RenderDispObjectCurve();
+	ProError RenderDispObjectCurve(
+		std::vector<NDSFloat32>& vertices,
+		std::vector<NDSUInt32>& indices,
+		NDSMatrix& transformMatrix
+	);
 
-	ProError RenderDispObjectMesh();
+	ProError RenderDispObjectMesh(
+		std::vector<NDSFloat32>& vertices,
+		std::vector<NDSFloat32>& normals,
+		std::vector<NDSUInt32>& indices,
+		ModelTransfer::NDSMaterial* matrial,
+		NDSMatrix& meshTransform
+	);
+
+	ProError RenderTestBox();
+
+	ProError RenderTestRectLine();
 
 private:
 

@@ -40,7 +40,10 @@ DispObjectRenderer::~DispObjectRenderer()
 	}
 }
 
-ProError DispObjectRenderer::RenderDispObjectCurve()
+ProError DispObjectRenderer::RenderDispObjectCurve(
+	std::vector<NDSFloat32>& vertices,
+	std::vector<NDSUInt32>& indices,
+	NDSMatrix& transformMatrix)
 {
 	ProError status = PRO_TK_NO_ERROR;
 	ProMdl model = NULL;
@@ -292,7 +295,12 @@ ProError DispObjectRenderer::RenderDispObjectCurve()
 	return status;
 }
 
-ProError DispObjectRenderer::RenderDispObjectMesh()
+ProError DispObjectRenderer::RenderDispObjectMesh(
+	std::vector<NDSFloat32>& vertices,
+	std::vector<NDSFloat32>& normals,
+	std::vector<NDSUInt32>& indices,
+	ModelTransfer::NDSMaterial* matrial,
+	NDSMatrix& meshTransform)
 {
 	ProError status = PRO_TK_NO_ERROR;
 	ProMdl model = NULL;
@@ -543,4 +551,83 @@ ProError DispObjectRenderer::RenderDispObjectMesh()
 	}
 
 	return PRO_TK_NO_ERROR;
+}
+
+ProError DispObjectRenderer::RenderTestBox()
+{
+	std::vector<NDSFloat32> vertices = {
+		// x, y, z
+		-1.0f, -1.0f, -1.0f,  // 0: 左下后
+		 1.0f, -1.0f, -1.0f,  // 1: 右下后
+		 1.0f,  1.0f, -1.0f,  // 2: 右上后
+		-1.0f,  1.0f, -1.0f,  // 3: 左上后
+		-1.0f, -1.0f,  1.0f,  // 4: 左下前
+		 1.0f, -1.0f,  1.0f,  // 5: 右下前
+		 1.0f,  1.0f,  1.0f,  // 6: 右上前
+		-1.0f,  1.0f,  1.0f   // 7: 左上前
+	};
+
+	std::vector<NDSFloat32> normals = {
+		// 顶点0: 左下后 (-1, -1, -1)
+		-0.57735f, -0.57735f, -0.57735f,  // 平均法线
+
+		// 顶点1: 右下后 (1, -1, -1)
+		0.57735f, -0.57735f, -0.57735f,  // 平均法线
+
+		// 顶点2: 右上后 (1, 1, -1)
+		0.57735f,  0.57735f, -0.57735f,  // 平均法线
+
+		-0.57735f,  0.57735f, -0.57735f,  // 平均法线
+
+		-0.57735f, -0.57735f,  0.57735f,  // 平均法线
+
+		0.57735f, -0.57735f,  0.57735f,  // 平均法线
+
+		0.57735f,  0.57735f,  0.57735f,  // 平均法线
+
+		-0.57735f,  0.57735f,  0.57735f   // 平均法线
+	};
+
+
+	std::vector<NDSUInt32> indices = {
+		// 后面 (z = -1)
+		0, 1, 2,   0, 2, 3,
+		// 前面 (z = 1)
+		4, 6, 5,   4, 7, 6,
+		// 下面 (y = -1)
+		0, 5, 1,   0, 4, 5,
+		// 上面 (y = 1)
+		3, 2, 6,   3, 6, 7,
+		// 左面 (x = -1)
+		0, 3, 7,   0, 7, 4,
+		// 右面 (x = 1)
+		1, 5, 6,   1, 6, 2
+	};
+
+	NDSMatrix meshTransform;
+	ModelTransfer::NDSMaterial ndsMaterial;
+	ProError status = RenderDispObjectMesh(vertices, normals, indices, &ndsMaterial, meshTransform);
+
+	return status;
+}
+
+ProError DispObjectRenderer::RenderTestRectLine()
+{
+	std::vector<NDSFloat32> vertices = {
+		-1.0, -1.0, -1.0,
+		1.0, -1.0, -1.0,
+		1.0, 1.0, -1.0,
+		-1.0, 1.0, 1.0
+	};
+
+	std::vector<NDSUInt32> indices = {
+		0, 1,
+		1, 2,
+		2, 3,
+		3, 0
+	};
+
+	NDSMatrix lineTransform;
+	ProError status = RenderDispObjectCurve(vertices, indices, lineTransform);
+	return status;
 }
