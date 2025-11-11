@@ -219,14 +219,12 @@ ProError PTTestDispObjectSurf()
 {
     DispObjectRenderer dispObjectRenderer;
     NDSMatrix meshMatrix;
-    meshMatrix.matrix[13] = -30.0;
-    ProError status = dispObjectRenderer.RenderTestBox(meshMatrix);
 
-    meshMatrix.matrix[13] = -60.0;
-    status = dispObjectRenderer.RenderTestBox(meshMatrix);
-
-    meshMatrix.matrix[13] = -90.0;
-    status = dispObjectRenderer.RenderTestBox(meshMatrix);
+    ProError status = PRO_TK_NO_ERROR;
+    for (int ii = 0; ii < 10; ++ii) {
+        meshMatrix.matrix[13] = -30.0 * ii;
+        status = dispObjectRenderer.RenderTestBox(meshMatrix);
+    }
 
 	return status;
 }

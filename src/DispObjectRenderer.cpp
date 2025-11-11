@@ -1,4 +1,7 @@
 #include "pch.h"
+
+#include <string>
+
 #include "DispObjectRenderer.h"
 
 #include "ProMdl.h"
@@ -368,8 +371,10 @@ ProError DispObjectRenderer::RenderDispObjectMesh(
 		m_dispObjectWindowId = disobj_winId;
 	}
 
+	std::wstring dispObjectName = L"test_disp_obj" + std::to_wstring(m_featureCount);
+	wchar_t* finalName = const_cast<wchar_t*>(dispObjectName.c_str());
 	// Creates new display object
-	status = ProDispObjectCreate(L"test_disp_obj", PRO_DISP_OBJECT_TWO_SIDED, facetCount, strip_size,
+	status = ProDispObjectCreate(finalName, PRO_DISP_OBJECT_TWO_SIDED, facetCount, strip_size,
 		strip_arr, &renderState.m_dispObject);
 
 	float colorX = float(std::rand()) / RAND_MAX;
@@ -386,18 +391,14 @@ ProError DispObjectRenderer::RenderDispObjectMesh(
 	surf_appear.transparency = 0.5;
 	surf_appear.diffuse = 0.80;
 	surf_appear.highlight_color[0] = 0.10;
-	surf_appear.highlight_color[1] = 0.20;
-	surf_appear.highlight_color[2] = 0.60;
+	surf_appear.highlight_color[1] = 0.10;
+	surf_appear.highlight_color[2] = 0.10;
 	surf_appear.reflection = 0.000000;
 
 	if (status == PRO_TK_NO_ERROR)
 	{
 		// Attaching display object
 		status = ProDispObjectAttach((int)disobj_winId, renderState.m_dispObject, NULL, renderState.m_featureId, transform);
-
-		surf_appear.color_rgb[0] = 0.0;
-		surf_appear.color_rgb[1] = 0.0;
-		surf_appear.color_rgb[2] = 1.0;
 
 		status = ProArrayAlloc(0, sizeof(int), 1, (ProArray*)&renderState.m_dispObjectList);
 
