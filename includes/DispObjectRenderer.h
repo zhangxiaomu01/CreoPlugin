@@ -6,6 +6,12 @@
 #include "ProToolkit.h"
 #include "ProDispObject.h"
 
+struct DispObjectRenderStates {
+	ProDispObject m_dispObject = NULL;
+	NDSInt32* m_dispObjectList = NULL;
+	NDSInt32 m_featureId = 118;
+};
+
 class DispObjectRenderer {
 public:
 	DispObjectRenderer() = default;
@@ -26,14 +32,20 @@ public:
 		NDSMatrix& meshTransform
 	);
 
-	ProError RenderTestBox();
+	ProError RenderTestBox(NDSMatrix& meshTransform);
 
 	ProError RenderTestRectLine();
 
 private:
 
-	ProDispObject surfDisp_obj = NULL;
+	//ProDispObject surfDisp_obj = NULL;
 	ProDispObject curveDisp_obj = NULL;
-	int* dispobj_keylist1 = NULL, * dispobj_keylist2 = NULL;
-	int m_dispObjectWindowId = -1;
+	NDSInt32* dispobj_keylist1 = NULL;
+	//NDSInt32* dispobj_keylist2 = NULL;
+	NDSInt32 m_dispObjectWindowId = -1;
+	NDSInt32 m_featureCount = 0;
+
+
+	std::vector<DispObjectRenderStates> m_renderStates;
+
 };

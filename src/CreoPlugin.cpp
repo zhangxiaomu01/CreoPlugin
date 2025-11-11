@@ -218,7 +218,15 @@ ProError PTTestDispObjectCurve()
 ProError PTTestDispObjectSurf()
 {
     DispObjectRenderer dispObjectRenderer;
-    ProError status = dispObjectRenderer.RenderTestBox();
+    NDSMatrix meshMatrix;
+    meshMatrix.matrix[13] = -30.0;
+    ProError status = dispObjectRenderer.RenderTestBox(meshMatrix);
+
+    meshMatrix.matrix[13] = -60.0;
+    status = dispObjectRenderer.RenderTestBox(meshMatrix);
+
+    meshMatrix.matrix[13] = -90.0;
+    status = dispObjectRenderer.RenderTestBox(meshMatrix);
 
 	return status;
 }

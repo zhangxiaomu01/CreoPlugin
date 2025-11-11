@@ -29,15 +29,20 @@ DispObjectRenderer::~DispObjectRenderer()
 		curveDisp_obj = NULL;
 	}
 
-	if (surfDisp_obj != NULL) {
-		status = ProDispObjectDetach(m_dispObjectWindowId, dispobj_keylist2);
+	NDSUInt32 renderStatesCount = m_renderStates.size();
+	if (renderStatesCount > 0) {
+		for (NDSUInt32 ii = 0; ii < renderStatesCount; ++ii) {
+			status = ProDispObjectDetach(m_dispObjectWindowId, m_renderStates[ii].m_dispObjectList);
 
-		status = ProDispObjectDelete(&surfDisp_obj);
+			status = ProDispObjectDelete(&m_renderStates[ii].m_dispObject);
 
-		status = ProArrayFree((ProArray*)&dispobj_keylist2);
+			status = ProArrayFree((ProArray*)&m_renderStates[ii].m_dispObjectList);
 
-		surfDisp_obj = NULL;
+			m_renderStates[ii].m_dispObject = NULL;
+		}
+		m_renderStates.clear();
 	}
+
 }
 
 ProError DispObjectRenderer::RenderDispObjectCurve(
@@ -316,7 +321,8 @@ ProError DispObjectRenderer::RenderDispObjectMesh(
 	ProTriVertex tempTriVertex;
 
 	int disobj_winId;
-	int feat_id = 118;
+	DispObjectRenderStates renderState;
+	renderState.m_featureId += m_featureCount;
 
 	facetCount = indices.size() / 3;
 
@@ -362,28 +368,21 @@ ProError DispObjectRenderer::RenderDispObjectMesh(
 		m_dispObjectWindowId = disobj_winId;
 	}
 
-	if (surfDisp_obj != NULL)  // Deletes existing display object
-	{
-		status = ProDispObjectDetach(disobj_winId, dispobj_keylist2);
-
-		status = ProDispObjectDelete(&surfDisp_obj);
-
-		status = ProArrayFree((ProArray*)&dispobj_keylist2);
-
-		surfDisp_obj = NULL;
-	}
-
 	// Creates new display object
 	status = ProDispObjectCreate(L"test_disp_obj", PRO_DISP_OBJECT_TWO_SIDED, facetCount, strip_size,
-		strip_arr, &surfDisp_obj);
+		strip_arr, &renderState.m_dispObject);
+
+	float colorX = float(std::rand()) / RAND_MAX;
+	float colorY = float(std::rand()) / RAND_MAX;
+	float colorZ = float(std::rand()) / RAND_MAX;
 
 	// setting appearance porperties for display object
 	surf_appear.ambient = 0.5;
 	surf_appear.shininess = 0.2;
 	surf_appear.highlite = 0.1;
-	surf_appear.color_rgb[0] = 0.0;
-	surf_appear.color_rgb[1] = 0.0;
-	surf_appear.color_rgb[2] = 1.0;
+	surf_appear.color_rgb[0] = colorX;
+	surf_appear.color_rgb[1] = colorY;
+	surf_appear.color_rgb[2] = colorZ;
 	surf_appear.transparency = 0.5;
 	surf_appear.diffuse = 0.80;
 	surf_appear.highlight_color[0] = 0.10;
@@ -394,19 +393,19 @@ ProError DispObjectRenderer::RenderDispObjectMesh(
 	if (status == PRO_TK_NO_ERROR)
 	{
 		// Attaching display object
-		status = ProDispObjectAttach((int)disobj_winId, surfDisp_obj, NULL, feat_id, transform);
+		status = ProDispObjectAttach((int)disobj_winId, renderState.m_dispObject, NULL, renderState.m_featureId, transform);
 
 		surf_appear.color_rgb[0] = 0.0;
 		surf_appear.color_rgb[1] = 0.0;
 		surf_appear.color_rgb[2] = 1.0;
 
-		status = ProArrayAlloc(0, sizeof(int), 1, (ProArray*)&dispobj_keylist2);
+		status = ProArrayAlloc(0, sizeof(int), 1, (ProArray*)&renderState.m_dispObjectList);
 
-		status = ProArrayObjectAdd((ProArray*)&dispobj_keylist2,
-			PRO_VALUE_UNUSED, 1, &feat_id);
+		status = ProArrayObjectAdd((ProArray*)&renderState.m_dispObjectList,
+			PRO_VALUE_UNUSED, 1, &renderState.m_featureId);
 
 		// Setting appearance properties on display object
-		status = ProDispObjectSetSurfaceAppearanceProps((int)disobj_winId, dispobj_keylist2, surf_appear);
+		status = ProDispObjectSetSurfaceAppearanceProps((int)disobj_winId, renderState.m_dispObjectList, surf_appear);
 	}
 
 	// Call repaint 
@@ -425,10 +424,14 @@ ProError DispObjectRenderer::RenderDispObjectMesh(
 
 	status = ProArrayFree((ProArray*)&strip_size);
 
+	// Increment feature count.
+	m_featureCount++;
+	m_renderStates.emplace_back(renderState);
+
 	return status;
 }
 
-ProError DispObjectRenderer::RenderTestBox()
+ProError DispObjectRenderer::RenderTestBox(NDSMatrix& meshTransform)
 {
 	std::vector<NDSFloat32> vertices = {
 		// x, y, z
@@ -479,8 +482,6 @@ ProError DispObjectRenderer::RenderTestBox()
 		1, 5, 6,   1, 6, 2
 	};
 
-	NDSMatrix meshTransform;
-	meshTransform.matrix[13] = -30.0;
 	ModelTransfer::NDSMaterial ndsMaterial;
 	ProError status = RenderDispObjectMesh(vertices, normals, indices, &ndsMaterial, meshTransform);
 
