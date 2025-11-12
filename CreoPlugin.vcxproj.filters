@@ -33,6 +33,9 @@
     <ClInclude Include="includes\CommonDataType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="includes\LineToTriangleConverter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -45,6 +48,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\DispObjectRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LineToTriangleConverter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

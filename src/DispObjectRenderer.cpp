@@ -3,6 +3,7 @@
 #include <string>
 
 #include "DispObjectRenderer.h"
+#include "LineToTriangleConverter.h"
 
 #include "ProMdl.h"
 #include "ProMenu.h"
@@ -489,13 +490,13 @@ ProError DispObjectRenderer::RenderTestBox(NDSMatrix& meshTransform)
 	return status;
 }
 
-ProError DispObjectRenderer::RenderTestRectLine()
+ProError DispObjectRenderer::RenderTestRectLine(NDSMatrix& lineTransform)
 {
 	std::vector<NDSFloat32> vertices = {
-		-1.0, -1.0, -1.0,
-		1.0, -1.0, -1.0,
-		1.0, 1.0, -1.0,
-		-1.0, 1.0, 1.0
+		-1.0, -1.0, 0.0,
+		1.0, -1.0, 0.0,
+		1.0, 1.0, 0.0,
+		-1.0, 1.0, 0.0
 	};
 
 	std::vector<NDSUInt32> indices = {
@@ -505,7 +506,18 @@ ProError DispObjectRenderer::RenderTestRectLine()
 		3, 0
 	};
 
-	NDSMatrix lineTransform;
-	ProError status = RenderDispObjectCurve(vertices, indices, lineTransform);
+	// 创建示例线段数据
+	std::vector<std::pair<LineToTriangleConverter::Vec3, LineToTriangleConverter::Vec3>> lines = {
+		{{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},  // X轴方向的线段
+		{{0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},  // Y轴方向的线段  
+		{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},  // Z轴方向的线段
+	};
+
+	// 转换为圆柱体网格
+	//auto mesh = LineToTriangleConverter::convertLinesToCylinders(lines, 0.01f, 4);
+	auto mesh = LineToTriangleConverter::ConvertLineSegmentsToCylinders(vertices, indices, 0.01f, 4);
+
+	ModelTransfer::NDSMaterial ndsMaterial;
+	ProError status = RenderDispObjectMesh(mesh.vertices, mesh.normals, mesh.indices, &ndsMaterial, lineTransform);
 	return status;
 }

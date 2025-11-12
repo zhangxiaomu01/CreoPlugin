@@ -34,7 +34,7 @@ public:
 
 	ProError RenderTestBox(NDSMatrix& meshTransform);
 
-	ProError RenderTestRectLine();
+	ProError RenderTestRectLine(NDSMatrix& lineTransform);
 
 private:
 

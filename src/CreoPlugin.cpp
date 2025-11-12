@@ -224,10 +224,12 @@ ProError PTTestDispObjectSurf()
     meshMatrix.matrix[10] = 100.0;
 
     ProError status = PRO_TK_NO_ERROR;
-    for (int ii = 0; ii < 2; ++ii) {
-        meshMatrix.matrix[13] = -250.0 * ii;
-        status = dispObjectRenderer.RenderTestBox(meshMatrix);
-    }
+    //for (int ii = 0; ii < 2; ++ii) {
+    //    meshMatrix.matrix[13] = -250.0 * ii;
+    //    status = dispObjectRenderer.RenderTestBox(meshMatrix);
+    //}
+
+    status = dispObjectRenderer.RenderTestRectLine(meshMatrix);
 
 	return status;
 }

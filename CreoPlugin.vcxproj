@@ -153,6 +153,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="includes\CommonDataType.h" />
     <ClInclude Include="includes\DispObjectRenderer.h" />
+    <ClInclude Include="includes\LineToTriangleConverter.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="thirdParty\logger\EasyLog.hpp" />
   </ItemGroup>
@@ -166,6 +167,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\DispObjectRenderer.cpp" />
+    <ClCompile Include="src\LineToTriangleConverter.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
