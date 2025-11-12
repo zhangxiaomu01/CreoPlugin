@@ -204,6 +204,7 @@ ProError  ProTestInstallationCheck();
 ProError  ProTestInstallationURLCheck();
 static ProError ProTestStdCloseAction(char* dialog, char* component, ProAppData data);
 ProError  ProTestDialogCreate(ProBoolean is_successful);
+ProError UserZoomAtSelPoint();
 
 int	 ProDispObjectSelectEntitySet(ProType*, ProType);
 
@@ -296,7 +297,7 @@ extern "C" int user_initialize(
 
     ProMessageDisplay(MSGFIL, "USER %0s", "");
     status = ProCmdActionAdd("-Install Test",
-        (uiCmdCmdActFn)PTTestDispObjectSurf,
+        (uiCmdCmdActFn)UserZoomAtSelPoint,
         uiProe2ndImmediate, TestAccessDefault,
         PRO_B_TRUE, PRO_B_TRUE, &cmd_id);
 
@@ -470,3 +471,143 @@ ProError  ProTestDialogCreate(ProBoolean  is_successful)
     return (status);
 }
 
+/*=====================================================================*\
+FUNCTION: UserZoomAtSelPoint
+PURPOSE:  Zooms window in by factor of 2 at selected point on a solid model.
+\*=====================================================================*/
+ProError UserZoomAtSelPoint()
+{
+    int windowId = -1;
+    ProError status = ProWindowCurrentGet(&windowId);
+    if (windowId > 0) {
+        status = ProWindowRefit(windowId);
+
+        // ProViewRefit(); // Should be good engough!
+    }
+
+    return status;
+
+
+    //ProError status;
+    ProSelection* p_sel;
+    int n_sel;
+    ProAsmcomppath	comp_path;
+    ProPoint3d p3d;
+    ProMatrix	matrix, zoom_matrix;
+    ProPoint3d t_point;
+    ProFileName msgfile;
+    ProModelitem item;
+    ProMdl top_model;
+
+    ProPoint3d scrpnt;
+    int i, j, k;
+    int window;
+    double scale;
+
+    /*--------------------------------------------------------------------*\
+        The Pro/ENGINEER "virtual window".  Used to calculate the amount
+        of pan needed to center the zoomed window on the chosen point.
+    \*--------------------------------------------------------------------*/
+    double window_outline[2][3] = { {0.0, 0.0, 0.0}, {1000.0, 843.75, 0.0} };
+
+    ProStringToWstring(msgfile, "msg_uggraph.txt");
+
+    /*-----------------------------------------------------------------*\
+        Prompt the user to select the center of the zoom
+    \*-----------------------------------------------------------------*/
+    ProMessageDisplay(msgfile,
+        "USER Select a location on a solid model for zoom ");
+
+    status = ProSelect("prt_or_asm", 1, NULL, NULL, NULL, NULL,
+        &p_sel, &n_sel);
+    if (status != PRO_TK_NO_ERROR)
+        return (status);
+
+    /*-----------------------------------------------------------------*\
+        Get the selected point
+    \*-----------------------------------------------------------------*/
+    ProSelectionPoint3dGet(p_sel[0], p3d);
+
+    /*-----------------------------------------------------------------*\
+        Get the assembly component path for the selected component
+    \*-----------------------------------------------------------------*/
+    status = ProSelectionAsmcomppathGet(p_sel[0], &comp_path);
+    if (status == PRO_TK_NO_ERROR && comp_path.owner != NULL)
+    {
+
+        top_model = comp_path.owner;
+        /*-----------------------------------------------------------------*\
+            Get the coordinate transformation matrix for the component to
+                the assembly
+        \*-----------------------------------------------------------------*/
+        ProAsmcomppathTrfGet(&comp_path, PRO_B_TRUE, matrix);
+
+        /*-----------------------------------------------------------------*\
+            Transform the selected point into the coordinate system of the
+                top level assembly
+        \*-----------------------------------------------------------------*/
+        status = ProPntTrfEval(p3d, matrix, t_point);
+
+    }
+    else
+    {
+
+        /*-----------------------------------------------------------------*\
+            If the selection is the top level component prepare the needed
+            parameters for zooming
+        \*-----------------------------------------------------------------*/
+        ProSelectionModelitemGet(p_sel[0], &item);
+        top_model = item.owner;
+        memcpy(t_point, p3d, sizeof(ProPoint3d));
+    }
+
+    /*-----------------------------------------------------------------*\
+        Get the view transformation matrix (from the current window)
+    \*-----------------------------------------------------------------*/
+    ProViewMatrixGet(top_model, NULL, matrix);
+
+    /*-----------------------------------------------------------------*\
+        Transform the solid model point to screen coordinates
+    \*-----------------------------------------------------------------*/
+    ProPntTrfEval(t_point, matrix, scrpnt);
+
+    /*-----------------------------------------------------------------*\
+        Get the window pan-zoom transformation matrix
+    \*-----------------------------------------------------------------*/
+    ProWindowCurrentMatrixGet(matrix);
+
+    /*-----------------------------------------------------------------*\
+        Zoom in on the created point
+    \*-----------------------------------------------------------------*/
+    for (j = 0; j < 4; j++)
+    {
+        for (k = 0; k < 4; k++)
+            zoom_matrix[j][k] = 0.0;
+    }
+
+    /*-----------------------------------------------------------------*\
+        Double the existing window scale
+    \*-----------------------------------------------------------------*/
+    scale = 2.0 * matrix[0][0];
+
+    for (j = 0; j < 3; j++)
+    {
+        zoom_matrix[j][j] = scale;
+        zoom_matrix[3][j] =
+            (window_outline[1][j] - window_outline[0][j]) / 2.0 -
+            scrpnt[j] * scale;
+    }
+
+    zoom_matrix[3][3] = 1.0;
+
+    ProMdlWindowGet(top_model, &window);
+
+    status = ProWindowPanZoomMatrixSet(window, zoom_matrix);
+
+    /*-----------------------------------------------------------------*\
+        Repaint the window
+    \*-----------------------------------------------------------------*/
+    ProWindowRepaint(window);
+
+    return (status);
+}
