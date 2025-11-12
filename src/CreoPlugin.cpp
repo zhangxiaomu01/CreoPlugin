@@ -229,7 +229,10 @@ ProError PTTestDispObjectSurf()
     //    status = dispObjectRenderer.RenderTestBox(meshMatrix);
     //}
 
-    status = dispObjectRenderer.RenderTestRectLine(meshMatrix);
+    for (int ii = 0; ii < 2; ++ii) {
+        meshMatrix.matrix[14] = -40.0 * ii;
+        status = dispObjectRenderer.RenderTestRectLine(meshMatrix);
+    }
 
 	return status;
 }
