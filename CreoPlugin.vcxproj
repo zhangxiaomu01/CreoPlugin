@@ -152,12 +152,15 @@
   <ItemGroup>
     <ClInclude Include="framework.h" />
     <ClInclude Include="includes\CommonDataType.h" />
+    <ClInclude Include="includes\CreoNode.h" />
     <ClInclude Include="includes\DispObjectRenderer.h" />
     <ClInclude Include="includes\LineToTriangleConverter.h" />
+    <ClInclude Include="includes\ModelIterator.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="thirdParty\logger\EasyLog.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\CreoNode.cpp" />
     <ClCompile Include="src\CreoPlugin.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="pch.cpp">
@@ -168,6 +171,7 @@
     </ClCompile>
     <ClCompile Include="src\DispObjectRenderer.cpp" />
     <ClCompile Include="src\LineToTriangleConverter.cpp" />
+    <ClCompile Include="src\ModelIterator.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
