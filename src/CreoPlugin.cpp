@@ -187,6 +187,7 @@ Pro/Toolkit includes
 
 #include "../thirdParty/logger/EasyLog.hpp"
 #include "DispObjectRenderer.h"
+#include "ModelIterator.h"
 
 /*--------------------------------------------------------------------*\
 Application includes
@@ -200,20 +201,9 @@ static wchar_t  MSGFIL[] = { 'm','s','g','_','u','s','e','r','.','t','x','t','\0
 static char revcode[PRO_LINE_SIZE];
 
 /* Declare function */
-ProError  ProTestInstallationCheck();
-ProError  ProTestInstallationURLCheck();
-static ProError ProTestStdCloseAction(char* dialog, char* component, ProAppData data);
-ProError  ProTestDialogCreate(ProBoolean is_successful);
 ProError UserZoomAtSelPoint();
 
 int	 ProDispObjectSelectEntitySet(ProType*, ProType);
-
-// Creates display object on selected curve
-ProError PTTestDispObjectCurve()
-{
-	return PRO_TK_NO_ERROR;
-}
-
 
 // Function to create display object on selected surface
 ProError PTTestDispObjectSurf()
@@ -236,6 +226,15 @@ ProError PTTestDispObjectSurf()
     }
 
 	return status;
+}
+
+ProError CollectObjectInfo() {
+    ProError status = PRO_TK_NO_ERROR;
+
+    ModelIterator modelIterator;
+    modelIterator.CollectModelNode();
+
+    return status;
 }
 
 static uiCmdAccessState TestAccessDefault(uiCmdAccessMode access_mode)
@@ -267,12 +266,9 @@ extern "C" int user_initialize(
 
     initLogger("E:/Newdim/Project/Logs/mylogfile.log", ldebug);
 
-    L_(linfo) << "info";
+    L_(linfo) << "Plugin initializing...";
 
-    L_(lwarning) << "Ops, variable x should be " << 5 << "; is " << 6;
-
-    endLogger();
-
+    //L_(lwarning) << "Ops, variable x should be " << 5 << "; is " << 6;
 
     /*---------------------------------------------------------------------*\
         First confirm the size of wchar_t
@@ -297,7 +293,7 @@ extern "C" int user_initialize(
 
     ProMessageDisplay(MSGFIL, "USER %0s", "");
     status = ProCmdActionAdd("-Install Test",
-        (uiCmdCmdActFn)UserZoomAtSelPoint,
+        (uiCmdCmdActFn)CollectObjectInfo,
         uiProe2ndImmediate, TestAccessDefault,
         PRO_B_TRUE, PRO_B_TRUE, &cmd_id);
 
@@ -310,7 +306,7 @@ extern "C" int user_initialize(
     \*---------------------------------------------------------------------*/
 
     status = ProCmdActionAdd("TOOLKIT Compilers",
-        (uiCmdCmdActFn)ProTestInstallationURLCheck,
+        (uiCmdCmdActFn)PTTestDispObjectSurf,
         uiProe2ndImmediate, TestAccessDefault,
         PRO_B_TRUE, PRO_B_TRUE, &cmd_id);
 
@@ -330,12 +326,11 @@ extern "C" int user_initialize(
 
     ProWstringToString(cbuff1, wbuff1);
     ProWstringToString(cbuff2, wbuff2);
-    ProTKPrintf("\n     Exec_path:  %s\n", cbuff1);
-    ProTKPrintf("     Text_path:  %s\n\n", cbuff2);
 
-    for (i = 0; i < argc; i++)
-        ProTKPrintf("   argv[%d]: %s\n", i, argv[i]);
+    L_(linfo) << "Execute path: " << cbuff1;
+    L_(linfo) << "App text path: " << cbuff2;
 
+    endLogger();
     /* Upon success */
     return (0);
 
@@ -358,117 +353,6 @@ extern "C" void user_terminate()
 {
 
     ProTKPrintf("user_terminate\n");
-}
-
-/*====================================================================*\
-FUNCTION : ProTestInstallationCheck
-PURPOSE  : Open a internationalized modal dialog with the test result
-\*====================================================================*/
-ProError  ProTestInstallationCheck()
-{
-    int 	window_id;
-    ProError 	status;
-    ProBoolean 	is_successful = PRO_B_FALSE;
-
-    /* Call a sample Pro/TOOLKIT feature */
-    status = ProWindowCurrentGet(&window_id);
-
-    if (status == PRO_TK_NO_ERROR)
-    {
-        /* Set flag for a SUCCESS dialog */
-        is_successful = PRO_B_TRUE;
-    }
-    else
-    {
-        /* Set flag for a FAILURE dialog */
-        is_successful = PRO_B_FALSE;
-    }
-
-    /*---------------------------------------------------------------------*\
-             Create and Display the dialog
-    \*---------------------------------------------------------------------*/
-    status = ProTestDialogCreate(is_successful);
-
-    return (status);
-}
-
-/*====================================================================*\
-FUNCTION : ProTestStdCloseAction
-PURPOSE  : Close Action for Dialog
-\*====================================================================*/
-static ProError ProTestStdCloseAction(char* dialog, char* component, ProAppData data)
-{
-    ProError status;
-
-    status = ProUIDialogExit(dialog, PRO_TK_NO_ERROR);
-    return status;
-}
-
-/*====================================================================*\
-FUNCTION : ProTestInstallationURLCheck
-PURPOSE  : Open the URL for PTC Supports Web Page in Embedded Browser
-\*====================================================================*/
-ProError  ProTestInstallationURLCheck()
-{
-    int 	window_id;
-    ProError 	status;
-    ProComment 	url;
-
-    /*---------------------------------------------------------------------*\
-             Call a sample Pro/TOOLKIT feature
-    \*---------------------------------------------------------------------*/
-    status = ProWindowCurrentGet(&window_id);
-
-    if (status == PRO_TK_NO_ERROR)
-    {
-        /*---------------------------------------------------------------------*\
-                 Load a sample URL
-        \*---------------------------------------------------------------------*/
-        ProStringToWstring(url, "http://www.ptc.com/partners/hardware/current/support.htm");
-        status = ProWindowURLShow(window_id, url);
-    }
-
-    return (status);
-}
-
-/*====================================================================*\
-FUNCTION : ProTestDialogCreate
-PURPOSE  : Common utility for creation of dialog
-\*====================================================================*/
-ProError  ProTestDialogCreate(ProBoolean  is_successful)
-{
-    ProMdl 	model;
-    int 	dialog_status;
-    ProError 	status;
-    ProComment  message_wchar;
-    ProComment  title_wchar;
-
-    char* dialog = "pt_install_dialog";
-
-    status = ProUIDialogCreate(dialog, dialog);
-
-    status = ProUIDialogCloseActionSet(dialog,
-        (ProUIAction)ProTestStdCloseAction, NULL);
-
-    status = ProUIPushbuttonActivateActionSet(dialog, "CloseBtn",
-        (ProUIAction)ProTestStdCloseAction, NULL);
-
-    if (is_successful == PRO_B_TRUE)
-    {
-        status = ProMessageToBuffer(message_wchar, MSGFIL, "USER Succeeded");
-    }
-    else
-    {
-        status = ProMessageToBuffer(message_wchar, MSGFIL, "USER Failed");
-    }
-
-    status = ProUILabelTextSet(dialog, "Message", message_wchar);
-
-    status = ProUIDialogActivate(dialog, &dialog_status);
-
-    status = ProUIDialogDestroy(dialog);
-
-    return (status);
 }
 
 /*=====================================================================*\
