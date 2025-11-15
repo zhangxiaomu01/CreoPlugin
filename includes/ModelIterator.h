@@ -16,4 +16,5 @@ public:
 private:
 	std::shared_ptr<CreoNode> m_rootNode;
 
+	ProMdl m_creoModel;
 };
