@@ -44,6 +44,7 @@ ProError ModelIterator::CollectModelNode()
 	rootFeature.owner = m_creoModel;
 	
 	m_rootNode = std::shared_ptr<CreoNode>(new CreoNode(nodeName, rootFeature, m_creoModel, nullptr, type));
+	m_rootNode->ParseNode();
 
 	return status;
 }
