@@ -42,6 +42,13 @@ CreoNode::CreoNode(
 	m_nodePath = "";
 }
 
+static ProError NDSProSurfaceVisitAction(ProSurface p_surface, ProError status, ProAppData app_data)
+{
+	std::vector<ProSurface>* p_surfaces = (std::vector<ProSurface>*)app_data;
+	p_surfaces->emplace_back(p_surface);
+	return PRO_TK_NO_ERROR;
+}
+
 ProError CreoNode::ParseNode()
 {
 	ProError status = PRO_TK_NO_ERROR;
@@ -83,8 +90,16 @@ ProError CreoNode::ParseNode()
 	if (m_type == CreoNodeType::CAssembly || m_type == CreoNodeType::CPart) {
 		ParseChildren();
 	}
-	else if (m_type == CreoNodeType::CBody || m_type == CreoNodeType::CQuilt) {
+	else if (m_type == CreoNodeType::CBody) {
 		// Parse face
+		status = ProSolidBodySurfaceVisit(&m_feature, NDSProSurfaceVisitAction, (ProAppData)&m_surfaces);
+
+		if (status == PRO_TK_NO_ERROR) {
+			status = ParseNodeMaterials();
+		}
+	}
+	else if (m_type == CreoNodeType::CQuilt) {
+		// Parse Quilt
 	}
 
 	return status;
@@ -198,6 +213,55 @@ std::shared_ptr<CreoNode> CreoNode::CreateBodyNode(NDSInt32 index, ProFeature& f
 		new CreoNode(index, feature, m_creoModel, this, CreoNodeType::CBody, std::move(compPath)));
 
 	return childNode;
+}
+
+ProError CreoNode::ParseNodeMaterials()
+{
+	if (m_type == CreoNodeType::CAssembly || m_type == CreoNodeType::CPart || m_surfaces.empty()) {
+		return PRO_TK_NO_CHANGE;
+	}
+
+	ProError status = PRO_TK_NO_ERROR;
+
+	ProMdl p_handle;
+	status = ProMdlCurrentGet(&p_handle);
+
+	for (int ii = 0; ii < m_surfaces.size(); ++ii) {
+		auto& face = m_surfaces[ii];
+		ProSurfaceAppearanceProps surfAppProps;
+		ProGeomitem geomSurface;
+		status = ProSurfaceToGeomitem((ProSolid)m_creoModel, face, &geomSurface);
+		ProAsmitem item;
+		item.item = geomSurface;
+		item.path = m_cmpPath;
+		item.item.owner = p_handle;
+		if (m_parent == nullptr)
+		{//���
+			item.path.comp_id_table[0] = -1;
+			item.path.owner = (ProSolid)p_handle;
+			item.path.table_num = 0;
+		}
+
+		int SpecularColor = 0;
+		int rgb = 0;
+		int ambientColor = 0;
+		double transparency = 0;
+		int shininess = 8;
+		double emissiveColor = 1;
+		double diffuseColor = 0;
+		status = ProMdlVisibleSideAppearancepropsGet(&item, 0, &surfAppProps);
+		if (PRO_TK_NO_ERROR != status)
+		{
+			status = ProSurfaceAppearanceDefaultPropsGet(PRO_DEF_APPEARANCE_SOLID, &surfAppProps);
+		}
+
+		if (status != PRO_TK_NO_ERROR) {
+			surfAppProps.diffuse = -1.0;
+		}
+		m_surfaceProperties.emplace_back(surfAppProps);
+	}
+
+	return status;
 }
 
 std::string CreoNode::GetNodePath()

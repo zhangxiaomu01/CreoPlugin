@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "ProObjects.h"
+#include "ProSurface.h"
 #include "CommonDataType.h"
 
 enum class CreoNodeType {
@@ -35,6 +36,8 @@ public:
 
 	std::shared_ptr<CreoNode> CreateBodyNode(NDSInt32 index, ProFeature& feature);
 
+	ProError ParseNodeMaterials();
+
 	std::string GetNodePath();
 
 private:
@@ -51,5 +54,8 @@ private:
 	ProMdl m_creoModel;
 	CreoNodeType m_type;
 	CreoNode* m_parent;
-	std::vector<std::shared_ptr<CreoNode>> m_children;
+	std::vector<std::shared_ptr<CreoNode>> m_children; // Only valid for Assembly / Part node.
+
+	std::vector<ProSurface> m_surfaces; // Only valid for Body / Quilt node.
+	std::vector<ProSurfaceAppearanceProps> m_surfaceProperties;
 };
