@@ -8,6 +8,7 @@
 #include <ProLayer.h>
 #include <ProSolid.h>
 #include <ProSolidBody.h>
+#include <ProQuilt.h>
 
 CreoNode::CreoNode(
 	std::wstring& name,
@@ -34,6 +35,19 @@ CreoNode::CreoNode(
 	CreoNodeType type,
 	ProAsmcomppath& compPath)
 	:m_feature(feature),
+	m_creoModel(creoModel),
+	m_parent(parentNode),
+	m_type(type),
+	m_cmpPath(std::move(compPath))
+{
+	m_localIndex = localIndex;
+	m_nodePath = "";
+	m_isSketch = false;
+}
+
+CreoNode::CreoNode(
+	NDSInt32 localIndex, ProQuilt& quilt, ProMdl creoModel, CreoNode* parentNode, CreoNodeType type, ProAsmcomppath& compPath)
+	:m_quilt(quilt),
 	m_creoModel(creoModel),
 	m_parent(parentNode),
 	m_type(type),
@@ -111,9 +125,9 @@ ProError CreoNode::ParseChildren()
 {
 	ProError status = PRO_TK_NO_ERROR;
 	std::vector<ProFeature> vComponents;
+	std::vector<ProQuilt> vQuilts;
 	if (m_type == CreoNodeType::CAssembly) { // Parse assembly
 		// Parse Quilt node
-		std::vector<ProQuilt> vQuilts;
 		status = ProAsmcomppathDispQuiltVisit(
 			&m_cmpPath, (ProSolid)m_creoModel, nullptr,
 			[](ProQuilt p_quilt, ProError status, ProAppData app_data)->ProError {
@@ -158,6 +172,38 @@ ProError CreoNode::ParseChildren()
 		);
 		vComponents.clear();
 
+		// Quilt
+		status = ProAsmcomppathDispQuiltVisit(
+			&m_cmpPath, (ProSolid)m_creoModel, nullptr,
+			[](ProQuilt p_quilt, ProError status, ProAppData app_data)->ProError {
+				std::vector<ProQuilt>* vQuilts = (std::vector<ProQuilt>*)app_data;
+				vQuilts->emplace_back(p_quilt);
+				return PRO_TK_NO_ERROR;
+			}, (ProAppData)&vQuilts);
+
+		if (status == PRO_TK_NO_ERROR)
+		{
+			for (int ii = 0; ii < vQuilts.size(); ++ii)
+			{
+				auto childNode = CreateQuiltNode(ii, vQuilts[ii]);
+
+				if (childNode == nullptr) {
+					continue;
+				}
+
+				// TODO: This is not working!
+				//ProGeomitem geomSurface;
+				//status = ProQuiltToGeomitem((ProSolid)m_creoModel, vQuilts[ii], &geomSurface);
+				//if (status == PRO_TK_NO_ERROR) {
+				//	status = ProModelitemHide(&geomSurface);
+				//}
+
+				childNode->ParseNode();
+				m_children.emplace_back(std::move(childNode));
+			}
+		}
+
+		// Solid body
 		int size = 0;
 		ProSolidBody* bodies = nullptr;
 		status = ProSolidBodiesCollect((ProSolid)m_creoModel, &bodies);
@@ -176,7 +222,6 @@ ProError CreoNode::ParseChildren()
 			}
 			ProArrayFree((ProArray*)&bodies);
 		}
-
 
 	}
 	return status;
@@ -227,7 +272,6 @@ std::shared_ptr<CreoNode> CreoNode::CreateBodyNode(NDSInt32 index, ProFeature& f
 		return nullptr;
 	}
 
-	
 	// Add comp path;
 	auto compPath = m_cmpPath;
 	compPath.comp_id_table[compPath.table_num] = feature.id;
@@ -236,6 +280,23 @@ std::shared_ptr<CreoNode> CreoNode::CreateBodyNode(NDSInt32 index, ProFeature& f
 	// Body will have the same creoModel as Part.
 	std::shared_ptr<CreoNode> childNode = std::shared_ptr<CreoNode>(
 		new CreoNode(index, feature, m_creoModel, this, CreoNodeType::CBody, std::move(compPath)));
+
+	return childNode;
+}
+
+std::shared_ptr<CreoNode> CreoNode::CreateQuiltNode(NDSInt32 index, ProQuilt& quilt)
+{
+	ProError status = PRO_TK_NO_ERROR;
+
+	NDSInt32 quiltId = -1;
+	status = ProQuiltIdGet(quilt, &quiltId);
+
+	auto compPath = m_cmpPath;
+	compPath.comp_id_table[compPath.table_num] = quiltId;
+	++compPath.table_num;
+
+	std::shared_ptr<CreoNode> childNode = std::shared_ptr<CreoNode>(
+		new CreoNode(index, quilt, m_creoModel, this, CreoNodeType::CQuilt, std::move(compPath)));
 
 	return childNode;
 }

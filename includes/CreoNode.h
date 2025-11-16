@@ -28,6 +28,11 @@ public:
 		CreoNode* parentNode, CreoNodeType type, 
 		ProAsmcomppath& compPath);
 
+	CreoNode(NDSInt32 localIndex,
+		ProQuilt& quilt, ProMdl creoModel,
+		CreoNode* parentNode, CreoNodeType type,
+		ProAsmcomppath& compPath);
+
 	ProError ParseNode();
 
 	ProError ParseChildren();
@@ -35,6 +40,8 @@ public:
 	std::shared_ptr<CreoNode> Create(NDSInt32 index, ProFeature& feature);
 
 	std::shared_ptr<CreoNode> CreateBodyNode(NDSInt32 index, ProFeature& feature);
+
+	std::shared_ptr<CreoNode> CreateQuiltNode(NDSInt32 index, ProQuilt& quilt);
 
 	ProError ParseNodeMaterials();
 
@@ -52,6 +59,7 @@ private:
 	bool m_isSketch;
 
 	ProFeature m_feature;
+	ProQuilt m_quilt;
 	ProMdl m_creoModel;
 	CreoNodeType m_type;
 	CreoNode* m_parent;
