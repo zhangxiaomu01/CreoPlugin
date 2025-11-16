@@ -49,6 +49,7 @@ private:
 	std::string m_nodePath;
 	ProAsmcomppath m_cmpPath{};
 	NDSInt32 m_localIndex;
+	bool m_isSketch;
 
 	ProFeature m_feature;
 	ProMdl m_creoModel;

@@ -23,6 +23,7 @@ CreoNode::CreoNode(
 {
 	m_localIndex = 0;
 	m_nodePath = "";
+	m_isSketch = false;
 }
 
 CreoNode::CreoNode(
@@ -40,6 +41,7 @@ CreoNode::CreoNode(
 {
 	m_localIndex = localIndex;
 	m_nodePath = "";
+	m_isSketch = false;
 }
 
 static ProError NDSProSurfaceVisitAction(ProSurface p_surface, ProError status, ProAppData app_data)
@@ -110,6 +112,21 @@ ProError CreoNode::ParseChildren()
 	ProError status = PRO_TK_NO_ERROR;
 	std::vector<ProFeature> vComponents;
 	if (m_type == CreoNodeType::CAssembly) { // Parse assembly
+		// Parse Quilt node
+		std::vector<ProQuilt> vQuilts;
+		status = ProAsmcomppathDispQuiltVisit(
+			&m_cmpPath, (ProSolid)m_creoModel, nullptr,
+			[](ProQuilt p_quilt, ProError status, ProAppData app_data)->ProError {
+				std::vector<ProQuilt>* vQuilts = (std::vector<ProQuilt>*)app_data;
+				vQuilts->emplace_back(p_quilt);
+				return PRO_TK_CONTINUE;
+			},
+			(ProAppData)&vQuilts);
+		if (!vQuilts.empty()) {
+			// TODO: Add extra part node. For now, skip.
+		}
+
+		// Parse Part / Sub - assembly
 		status = ProSolidFeatVisit(
 			(ProSolid) m_creoModel,
 			NDSProCOmponentVisitAction,
