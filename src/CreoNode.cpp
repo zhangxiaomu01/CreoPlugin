@@ -108,8 +108,8 @@ ProError CreoNode::ParseNode()
 ProError CreoNode::ParseChildren()
 {
 	ProError status = PRO_TK_NO_ERROR;
+	std::vector<ProFeature> vComponents;
 	if (m_type == CreoNodeType::CAssembly) { // Parse assembly
-		std::vector<ProFeature> vComponents;
 		status = ProSolidFeatVisit(
 			(ProSolid) m_creoModel,
 			NDSProCOmponentVisitAction,
@@ -133,6 +133,14 @@ ProError CreoNode::ParseChildren()
 
 	}
 	else if (m_type == CreoNodeType::CPart) {
+		status = ProSolidFeatVisit(
+			(ProSolid)m_creoModel,
+			NDSProCOmponentVisitAction,
+			NDSProComponentFilterAction,
+			(ProAppData)&vComponents
+		);
+		vComponents.clear();
+
 		int size = 0;
 		ProSolidBody* bodies = nullptr;
 		status = ProSolidBodiesCollect((ProSolid)m_creoModel, &bodies);
