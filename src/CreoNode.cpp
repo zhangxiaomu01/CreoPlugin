@@ -249,12 +249,28 @@ ProError CreoNode::ParseNodeMaterials()
 		int shininess = 8;
 		double emissiveColor = 1;
 		double diffuseColor = 0;
-		status = ProMdlVisibleSideAppearancepropsGet(&item, 0, &surfAppProps);
-		if (PRO_TK_NO_ERROR != status)
-		{
-			status = ProSurfaceAppearanceDefaultPropsGet(PRO_DEF_APPEARANCE_SOLID, &surfAppProps);
+
+		status = ProSurfaceSideAppearancepropsGet((ProModelitem*)&geomSurface, 0, &surfAppProps);
+		if (PRO_TK_NO_ERROR != status) {
+			status = ProMdlVisibleSideAppearancepropsGet(&item, 0, &surfAppProps);
+			if (PRO_TK_NO_ERROR != status)
+			{
+				status = ProSurfaceAppearanceDefaultPropsGet(PRO_DEF_APPEARANCE_SOLID, &surfAppProps);
+			}
 		}
 
+		// Test code		
+		if (ii == 86) {
+			int x = 0;
+			//ProSurfaceAppearanceProps newSurfAppProps = surfAppProps;
+			//newSurfAppProps.color_rgb[0] = 1.0f;
+			//newSurfAppProps.color_rgb[1] = 0.0f;
+			//newSurfAppProps.color_rgb[2] = 0.0f;
+			//status = ProSurfaceSideAppearancepropsGet((ProModelitem*) &geomSurface, 0, &surfAppProps);
+			//status = ProSurfaceSideAppearancepropsGet((ProModelitem*)&geomSurface, 1, &surfAppProps);
+			//status = ProSurfaceSideAppearancepropsSet((ProModelitem*)&geomSurface, 0, &newSurfAppProps);
+		}
+		//
 		if (status != PRO_TK_NO_ERROR) {
 			surfAppProps.diffuse = -1.0;
 		}
