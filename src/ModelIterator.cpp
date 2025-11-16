@@ -5,6 +5,8 @@
 #include "ProMdl.h"
 #include "ProUtil.h"
 #include <ProView.h>
+#include <ProSolid.h>
+#include <ProWindows.h>
 
 ModelIterator::ModelIterator()
 {
@@ -102,7 +104,8 @@ ProError ModelIterator::RefitToModel(std::string& path)
 
 			status = ProViewMatrixGet(model, p_view, matrix);
 
-			status = ProViewRefit(model, p_view);
+			status = ProViewRefit(model, p_view); // Not working correctly
+            break;
 		}
 		ProStringToWstring(w_fname, fname);
 		ProInfoWindowDisplay(w_fname, NULL, NULL);
@@ -124,6 +127,84 @@ ProError ModelIterator::RefitToModel(std::string& path)
 
 	//	status = ProViewRefit(currentModel, nullptr);
 	//}
+
+	return status;
+}
+
+ProError ModelIterator::RefitToModelCustom(std::string& path)
+{
+	ProError status = PRO_TK_NO_CHANGE;
+	if (path.empty()) {
+		return status;
+	}
+	std::string PartIndexStr = path.substr(path.size() - 1);
+
+    //ProError status;
+    ProSelection* p_sel;
+    int n_sel;
+    ProAsmcomppath	comp_path;
+    ProPoint3d p3d;
+    ProMatrix	matrix, zoom_matrix;
+    ProPoint3d t_point;
+    ProFileName msgfile;
+    ProModelitem item;
+    ProMdl top_model;
+
+    ProPoint3d scrpnt;
+    int i, j, k;
+    int window;
+    double scale;
+
+    /*--------------------------------------------------------------------*\
+        The Pro/ENGINEER "virtual window".  Used to calculate the amount
+        of pan needed to center the zoomed window on the chosen point.
+    \*--------------------------------------------------------------------*/
+    double window_outline[2][3] = { {0.0, 0.0, 0.0}, {1000.0, 843.75, 0.0} };
+
+    ProMdl currentModel;
+    status = ProMdlCurrentGet(&currentModel);
+
+    ProMdlWindowGet(currentModel, &window);
+
+	ProWindowRefit(window);
+
+
+    /*-----------------------------------------------------------------*\
+        Get the window pan-zoom transformation matrix
+    \*-----------------------------------------------------------------*/
+    ProWindowCurrentMatrixGet(matrix);
+
+    /*-----------------------------------------------------------------*\
+        Zoom in on the created point
+    \*-----------------------------------------------------------------*/
+    for (j = 0; j < 4; j++)
+    {
+        for (k = 0; k < 4; k++)
+            zoom_matrix[j][k] = 0.0;
+    }
+
+    /*-----------------------------------------------------------------*\
+        Double the existing window scale
+    \*-----------------------------------------------------------------*/
+    scale = 2.0 * matrix[0][0];
+
+    for (j = 0; j < 3; j++)
+    {
+        zoom_matrix[j][j] = scale;
+        //zoom_matrix[3][j] =
+        //    (window_outline[1][j] - window_outline[0][j]) / 2.0 -
+        //    scrpnt[j] * scale;
+    }
+
+    zoom_matrix[3][3] = 1.0;
+
+    status = ProWindowPanZoomMatrixSet(window, zoom_matrix);
+
+    /*-----------------------------------------------------------------*\
+        Repaint the window
+    \*-----------------------------------------------------------------*/
+    ProWindowRepaint(window);
+
 
 	return status;
 }

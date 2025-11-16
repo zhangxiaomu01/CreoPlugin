@@ -14,8 +14,13 @@ public:
 	ProError CollectModelNode();
 
 	ProError RefitToModel(std::string& path);
+
+	ProError RefitToModelCustom(std::string& path);
 private:
 	std::shared_ptr<CreoNode> m_rootNode;
 
 	ProMdl m_creoModel;
+
+	ProMatrix m_oldViewPanZoomMatrix;
+	bool m_panZoomMatrixSet = false;
 };
