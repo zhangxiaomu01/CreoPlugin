@@ -13,6 +13,7 @@ public:
 
 	ProError CollectModelNode();
 
+	ProError RefitToModel(std::string& path);
 private:
 	std::shared_ptr<CreoNode> m_rootNode;
 

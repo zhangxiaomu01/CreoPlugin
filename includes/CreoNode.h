@@ -47,6 +47,14 @@ public:
 
 	std::string GetNodePath();
 
+	ProMdl& GetSolid();
+
+	ProFeature& GetFeature();
+
+	ProAsmcomppath& GetProAsmcompPath();
+
+	CreoNode* GetCreoNodeAtIndex(NDSInt32 index);
+
 private:
 	static ProError NDSProCOmponentVisitAction(ProFeature* p_feature, ProError status, ProAppData app_data);
 

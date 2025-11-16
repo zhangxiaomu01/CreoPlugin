@@ -234,6 +234,9 @@ ProError CollectObjectInfo() {
     ModelIterator modelIterator;
     modelIterator.CollectModelNode();
 
+    std::string path = "0_0";
+    //status = modelIterator.RefitToModel(path);
+
     return status;
 }
 

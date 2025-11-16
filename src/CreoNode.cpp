@@ -371,6 +371,27 @@ std::string CreoNode::GetNodePath()
 	return m_nodePath;
 }
 
+ProMdl& CreoNode::GetSolid()
+{
+	return m_creoModel;
+}
+
+ProFeature& CreoNode::GetFeature()
+{
+	return m_feature;
+}
+
+ProAsmcomppath& CreoNode::GetProAsmcompPath()
+{
+	return m_cmpPath;
+}
+
+CreoNode* CreoNode::GetCreoNodeAtIndex(NDSInt32 index)
+{
+	if (index < 0 || index >= m_children.size()) return nullptr;
+	return m_children[index].get();
+}
+
 ProError CreoNode::NDSProCOmponentVisitAction(ProFeature* p_feature, ProError status, ProAppData app_data)
 {
 	std::vector<ProFeature>* componentArray = (std::vector<ProFeature>*)app_data;
