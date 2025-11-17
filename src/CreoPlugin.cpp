@@ -184,6 +184,7 @@ Pro/Toolkit includes
 #include <ProWstring.h>
 #include <ProXsec.h>
 #include <ProTKRunTime.h>
+#include <ProGraphic.h>
 
 #include "../thirdParty/logger/EasyLog.hpp"
 #include "DispObjectRenderer.h"
@@ -239,6 +240,31 @@ ProError CollectObjectInfo() {
 
     return status;
 }
+
+int ProTestGraphicsTextDisplay(void* p_dummy, int int_dummy)
+{
+    ProError		status;
+    ProMouseButton	button;
+    ProPoint3d		point1;
+    wchar_t		w_string[80];
+
+
+    /* Pick the point by mouse */
+    status = ProMousePickGet(PRO_LEFT_BUTTON, &button, point1);
+    if (status != PRO_TK_NO_ERROR)
+        return 0;
+
+    /* Get a text to display */
+    status = ProMessageStringRead(80, w_string);
+    if (status != PRO_TK_NO_ERROR)
+        return 0;
+
+    /* Display the text */
+    status = ProGraphicsTextDisplay(point1, w_string);
+
+    return 1;
+}
+
 
 static uiCmdAccessState TestAccessDefault(uiCmdAccessMode access_mode)
 {
@@ -296,7 +322,7 @@ extern "C" int user_initialize(
 
     ProMessageDisplay(MSGFIL, "USER %0s", "");
     status = ProCmdActionAdd("-Install Test",
-        (uiCmdCmdActFn)CollectObjectInfo,
+        (uiCmdCmdActFn)ProTestGraphicsTextDisplay,
         uiProe2ndImmediate, TestAccessDefault,
         PRO_B_TRUE, PRO_B_TRUE, &cmd_id);
 
