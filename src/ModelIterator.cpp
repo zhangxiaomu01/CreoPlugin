@@ -159,14 +159,13 @@ ProError ModelIterator::RefitToModelCustom(std::string& path)
         The Pro/ENGINEER "virtual window".  Used to calculate the amount
         of pan needed to center the zoomed window on the chosen point.
     \*--------------------------------------------------------------------*/
-    double window_outline[2][3] = { {0.0, 0.0, 0.0}, {1000.0, 843.75, 0.0} };
 
     ProMdl currentModel;
     status = ProMdlCurrentGet(&currentModel);
 
     ProMdlWindowGet(currentModel, &window);
 
-	ProWindowRefit(window);
+	status = ProWindowRefit(window);
 
 
     /*-----------------------------------------------------------------*\
@@ -205,6 +204,28 @@ ProError ModelIterator::RefitToModelCustom(std::string& path)
     \*-----------------------------------------------------------------*/
     ProWindowRepaint(window);
 
+	status = ProWindowPanZoomMatrixSet(window, matrix);
 
 	return status;
+}
+
+bool ModelIterator::SaveScreenCaptureToPath(std::string fileName)
+{
+	std::string finalOutputFileName = "E:/Newdim/Project/Logs/" + fileName +".jpg";
+
+	ProError status;
+	int windowId = -1;
+	ProPath outputFile;
+
+	ProStringToWstring(outputFile,const_cast<char*> (finalOutputFileName.c_str()));
+
+	status = ProWindowCurrentGet(&windowId);
+
+	if (status == PRO_TK_NO_ERROR) {
+		status = ProRasterFileWrite(
+			windowId, PRORASTERDEPTH_8, 200, 200, PRORASTERDPI_100, PRORASTERTYPE_JPEG, outputFile);
+	}
+
+
+	return status == PRO_TK_NO_ERROR ? true : false;
 }

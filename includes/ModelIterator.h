@@ -16,6 +16,9 @@ public:
 	ProError RefitToModel(std::string& path);
 
 	ProError RefitToModelCustom(std::string& path);
+
+	bool SaveScreenCaptureToPath(std::string fileName);
+
 private:
 	std::shared_ptr<CreoNode> m_rootNode;
 
