@@ -16,6 +16,10 @@
 #define NDSUInt32 unsigned int
 #endif
 
+#ifndef NDSInt64
+#define NDSInt64 long long
+#endif
+
 namespace ModelTransfer {
 	struct NDSMaterial {
 		NDSUInt32 id = -1;

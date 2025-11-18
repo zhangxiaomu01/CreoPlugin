@@ -53,12 +53,16 @@ public:
 
 	ProAsmcomppath& GetProAsmcompPath();
 
+	ProError CollectCurrentNodePMI();
+
 	CreoNode* GetCreoNodeAtIndex(NDSInt32 index);
 
 private:
 	static ProError NDSProCOmponentVisitAction(ProFeature* p_feature, ProError status, ProAppData app_data);
 
 	static ProError NDSProComponentFilterAction(ProFeature* p_feature, ProAppData app_data);
+
+	NDSInt64 GetMergedKey(NDSInt32 val1, NDSInt32 val2);
 
 	std::wstring m_name;
 	std::string m_nodePath;
@@ -72,6 +76,7 @@ private:
 	CreoNodeType m_type;
 	CreoNode* m_parent;
 	std::vector<std::shared_ptr<CreoNode>> m_children; // Only valid for Assembly / Part node.
+	std::vector<ProAnnotation> m_annotations;
 
 	std::vector<ProSurface> m_surfaces; // Only valid for Body / Quilt node.
 	std::vector<ProSurfaceAppearanceProps> m_surfaceProperties;

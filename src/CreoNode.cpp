@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <unordered_map>
+
 #include "CreoNode.h"
 
 #include "ProObjects.h"
@@ -9,6 +11,7 @@
 #include <ProSolid.h>
 #include <ProSolidBody.h>
 #include <ProQuilt.h>
+#include <ProCombstate.h>
 
 CreoNode::CreoNode(
 	std::wstring& name,
@@ -104,7 +107,9 @@ ProError CreoNode::ParseNode()
 	}
 
 	if (m_type == CreoNodeType::CAssembly || m_type == CreoNodeType::CPart) {
-		ParseChildren();
+		status = CollectCurrentNodePMI();
+
+		status = ParseChildren();
 	}
 	else if (m_type == CreoNodeType::CBody) {
 		// Parse face
@@ -386,6 +391,61 @@ ProAsmcomppath& CreoNode::GetProAsmcompPath()
 	return m_cmpPath;
 }
 
+ProError CreoNode::CollectCurrentNodePMI()
+{
+	ProCombstate* p_cs_array = nullptr;
+	ProError status = ProMdlCombstatesGet((ProSolid) m_creoModel, &p_cs_array);
+
+	if (status == PRO_TK_NO_ERROR) {
+		std::unordered_map<NDSInt64, ProAnnotation> annotationMap;
+		ProName name;
+
+		int n_combstats = 0;
+		status = ProArraySizeGet((ProArray)p_cs_array, &n_combstats);
+		for (int i = 0; i < n_combstats; ++i) {
+			if (m_parent == nullptr) {
+				status = ProCombstateActivate(&p_cs_array[i]);
+			}
+
+			ProModelitem* cs_ref_arr = nullptr;
+			ProCrossecClipOpt clip_opt;
+			ProBool is_expld;
+			status = ProCombstateDataGet(&p_cs_array[i], name, &cs_ref_arr, &clip_opt, &is_expld);
+
+			if (status == PRO_TK_NO_ERROR) {
+				ProAnnotation* annotations = nullptr;
+				int* status_flags = nullptr;
+				status = ProCombstateAnnotationsGet(&p_cs_array[i], &annotations, &status_flags);
+
+				if (status == PRO_TK_NO_ERROR) {
+					int n_annotations = 0;
+					status = ProArraySizeGet((ProArray)annotations, &n_annotations);
+					for (int j = 0; j < n_annotations; ++j) {
+						auto& anno = annotations[j];
+						auto& flag = status_flags[j];
+						NDSInt64 key = GetMergedKey((NDSInt32)anno.type, anno.id);
+						if (annotationMap.find(key) == annotationMap.end()) {
+							annotationMap[key] = anno;
+						}
+					}
+					ProArrayFree((ProArray*)&annotations);
+					ProArrayFree((ProArray*)&status_flags);
+				}
+				ProArrayFree((ProArray*)&cs_ref_arr);
+			}
+		}
+
+		if (!annotationMap.empty()) {
+			for (auto& element : annotationMap) {
+				m_annotations.emplace_back(element.second);
+			}
+		}
+	}
+
+	ProArrayFree((ProArray*)&p_cs_array);
+	return status;
+}
+
 CreoNode* CreoNode::GetCreoNodeAtIndex(NDSInt32 index)
 {
 	if (index < 0 || index >= m_children.size()) return nullptr;
@@ -416,4 +476,10 @@ ProError CreoNode::NDSProComponentFilterAction(ProFeature* p_feature, ProAppData
 		return PRO_TK_NO_ERROR;
 
 	return PRO_TK_CONTINUE;
+}
+
+NDSInt64 CreoNode::GetMergedKey(NDSInt32 val1, NDSInt32 val2)
+{
+	NDSInt64 res = (((NDSInt64)val1) << 32) | val2;
+	return res;
 }

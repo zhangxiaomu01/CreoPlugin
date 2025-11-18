@@ -322,7 +322,7 @@ extern "C" int user_initialize(
 
     ProMessageDisplay(MSGFIL, "USER %0s", "");
     status = ProCmdActionAdd("-Install Test",
-        (uiCmdCmdActFn)ProTestGraphicsTextDisplay,
+        (uiCmdCmdActFn)CollectObjectInfo,
         uiProe2ndImmediate, TestAccessDefault,
         PRO_B_TRUE, PRO_B_TRUE, &cmd_id);
 
