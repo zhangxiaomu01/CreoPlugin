@@ -236,7 +236,7 @@ ProError CollectObjectInfo() {
     modelIterator.CollectModelNode();
 
     //std::string path = "0_0";
-    //status = modelIterator.RefitToModelCustom(path);
+    //status = modelIterator.RefitToModel(path);
 
     return status;
 }
@@ -394,8 +394,6 @@ ProError UserZoomAtSelPoint()
     ProError status = ProWindowCurrentGet(&windowId);
     if (windowId > 0) {
         status = ProWindowRefit(windowId);
-
-        // ProViewRefit(); // Should be good engough!
     }
 
     return status;
